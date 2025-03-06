@@ -18,9 +18,22 @@ workflows:
       - name: Install Flutter dependencies
         script: flutter pub get
       - name: Build iOS app
-        script: flutter build ios --release --no-codesign
+        script: |
+          flutter build ios --release --no-codesign
+          cd ios
+          pod install --verbose
+          cd ..
+          xcodebuild -workspace ios/Runner.xcworkspace \
+                     -scheme Runner \
+                     -sdk iphoneos \
+                     -configuration Release \
+                     -archivePath build/ios/archive/App.xcarchive \
+                     archive
+          xcodebuild -exportArchive \
+                     -archivePath build/ios/archive/App.xcarchive \
+                     -exportPath build/ios/iphoneos \
+                     -exportOptionsPlist ios/ExportOptions.plist
     artifacts:
-      - build/ios/iphoneos/*.app
       - build/ios/iphoneos/*.ipa
     publishing:
       email:
